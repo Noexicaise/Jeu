@@ -155,7 +155,7 @@
 
         <div class="mt-8 flex justify-between items-center">
             <p class="text-xl font-bold text-gray-200">
-                Question <span id="current-question-index" class="text-yellow-500">1</span> / <span id="total-questions">10</span>
+                Question <span id="current-question-index" class="text-yellow-500">1</span> / <span id="total-questions">15</span>
             </p>
             <button id="next-button" class="btn-action py-3 px-6 rounded-xl transition duration-200 disabled:opacity-50" disabled>
                 Suivant &rarr;
@@ -172,7 +172,7 @@
         </h2>
         <p class="text-2xl text-gray-200 mb-8">Votre Score Final est :</p>
         <p class="text-6xl font-extrabold mb-10 text-yellow-500" style="color: var(--color-yellow-mikado);">
-            <span id="final-score">0</span> / 10
+            <span id="final-score">0</span> / 15
         </p>
         <button id="restart-button" class="btn-action py-4 px-8 rounded-xl transition duration-200 text-xl">
             Recommencer
@@ -252,6 +252,41 @@
             image: "images/photo10.jpg", 
             correctLocation: "Pairi Daiza",
             altLocations: ["Rastoke (Croatie)", "Bruxelles"],
+            isAnswered: false,
+            userAnswer: null
+        },
+		    {
+            image: "images/photo11.jpg", 
+            correctLocation: "USA",
+            altLocations: ["Crête", "Turquie"],
+            isAnswered: false,
+            userAnswer: null
+        },
+        {
+            image: "images/photo12.jpg", 
+            correctLocation: "Slovénie",
+            altLocations: ["Lithuanie", "Croatie"],
+            isAnswered: false,
+            userAnswer: null
+        },
+        {
+            image: "images/photo13.jpg", 
+            correctLocation: "Belgique",
+            altLocations: ["Turquie", "Bulgarie"],
+            isAnswered: false,
+            userAnswer: null
+        },
+        {
+            image: "images/photo14.jpg", 
+            correctLocation: "Namur",
+            altLocations: ["Bruxelles", "Mer du Nord"],
+            isAnswered: false,
+            userAnswer: null
+        },
+        {
+            image: "images/photo15.jpg", 
+            correctLocation: "Disney",
+            altLocations: ["Efteling", "Pairi Daiza"],
             isAnswered: false,
             userAnswer: null
         }
