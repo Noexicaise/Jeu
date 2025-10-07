@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeu de Localisation de Photos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+        
+        /* Définition des couleurs du thème */
+        :root {
+            --color-black-rich: #000814;
+            --color-blue-oxford: #001d3d;
+            --color-yellow-mikado: #ffc300;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-black-rich); /* Fond principal noir */
+            color: #f0f0f0; /* Texte clair */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background-color: var(--color-blue-oxford); /* Conteneur bleu foncé */
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            padding: 2rem;
+            border: 2px solid var(--color-yellow-mikado); /* Bordure jaune d'accent */
+        }
+        .image-container {
+            width: 100%;
+            height: 800px;
+            overflow: hidden;
+            border-radius: 1rem;
+            box-shadow: 0 0 15px rgba(255, 195, 0, 0.4); 
+            background-color: var(--color-black-rich);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .quiz-button {
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.75rem;
+            transition: all 0.2s;
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            border: 2px solid var(--color-yellow-mikado);
+            word-break: break-word; 
+        }
+        .quiz-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(255, 195, 0, 0.3);
+        }
+        .quiz-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+        /* Styles des boutons personnalisés */
+        .btn-default {
+            background-color: var(--color-blue-oxford); 
+            color: var(--color-yellow-mikado); /* Texte jaune */
+            border: 2px solid var(--color-yellow-mikado);
+        }
+        
+        /* Boutons Suivant et Redémarrer */
+        .btn-action {
+            background-color: var(--color-yellow-mikado); 
+            color: var(--color-blue-oxford);
+            font-weight: 800;
+        }
+        .btn-action:hover:not(:disabled) {
+            background-color: #ffd60a; /* Gold light */
+        }
+
+        /* Feedbacks (Maintien du vert/rouge pour clarté) */
+        .btn-correct {
+            background-color: #34d399; /* Green 400 */
+            color: white;
+            font-weight: 700;
+        }
+        .btn-wrong {
+            background-color: #f87171; /* Red 400 */
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="text-3xl font-extrabold text-center text-yellow-500 mb-6" style="color: var(--color-yellow-mikado);">
+        Où a été prise cette photo ?
+    </h1>
+
+    <!-- Écran de jeu -->
+    <div id="quiz-screen">
+        <div class="image-container mb-6">
+            <!-- L'attribut src va utiliser un chemin relatif (ex: 'images/photo1.jpg') -->
+            <img id="current-image" src="" alt="Photo à deviner">
+        </div>
+
+        <p class="text-lg font-semibold text-gray-200 mb-4" id="question-text"></p>
+
+        <div id="options-container" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Les options de réponse seront insérées ici -->
+        </div>
+
+        <div class="mt-8 flex justify-between items-center">
+            <p class="text-xl font-bold text-gray-200">
+                Question <span id="current-question-index" class="text-yellow-500">1</span> / <span id="total-questions">10</span>
+            </p>
+            <button id="next-button" class="btn-action py-3 px-6 rounded-xl transition duration-200 disabled:opacity-50" disabled>
+                Suivant &rarr;
+            </button>
+        </div>
+
+        <p id="feedback" class="text-center mt-4 font-semibold"></p>
+    </div>
+
+    <!-- Écran de résultats -->
+    <div id="result-screen" class="hidden text-center p-8">
+        <h2 class="text-4xl font-extrabold text-yellow-500 mb-4" style="color: var(--color-yellow-mikado);">
+            Jeu Terminé !
+        </h2>
+        <p class="text-2xl text-gray-200 mb-8">Votre Score Final est :</p>
+        <p class="text-6xl font-extrabold mb-10 text-yellow-500" style="color: var(--color-yellow-mikado);">
+            <span id="final-score">0</span> / 10
+        </p>
+        <button id="restart-button" class="btn-action py-4 px-8 rounded-xl transition duration-200 text-xl">
+            Recommencer
+        </button>
+    </div>
+
+</div>
+
+<script>
+    // Liste des questions du quiz utilisant des chemins de fichiers relatifs.
+    // ASSUREZ-VOUS de créer un dossier 'images' et de renommer vos photos : photo1.jpg, photo2.jpg, etc.
+    const quizData = [
+        {
+            image: "images/photo1.jpg", 
+            correctLocation: "Turquie",
+            altLocations: ["Bulgarie", "Egypte"],
+            isAnswered: false,
+            userAnswer: null
+        },
+        {
+            image: "images/photo2.jpg", 
+            correctLocation: "Tour & Taxis",
+            altLocations: ["Mer du Nord", "Citadelle de Namur"],
+            isAnswered: false,
+            userAnswer: null
+        },
+        {
+            image: "images/photo3.jpg", 
+            correctLocation: "Plage de sable au coucher du soleil (Côte Atlantique, France)",
+            altLocations: ["Désert du Sahara, Maroc", "Plage de galets en Croatie"],
+            isAnswered: false,
+            userAnswer: null
+        },
+        {
+            image: "images/photo4.jpg", 
+            correctLocation: "Bord de piscine avec margelle en brique rouge (Sud de la France)",
+            altLocations: ["Bain public à Budapest, Hongrie", "Piscine intérieure en Allemagne"],
+            isAnswered: false,
+            userAnswer: null
+        },
+        {
+            image: "images/photo5.jpg", 
+            correctLocation: "Vaduz",
+            altLocations: ["Sequoia Park", "Croatie"],
+            isAnswered: false,
+            userAnswer: null
+        },
+        {
+            image: "images/photo6.jpg", 
+            correctLocation: "Mer du Nord",
+            altLocations: ["Sardaigne", "Croatie"],
+            isAnswered: false,
+            userAnswer: null
+        },
+        {
+            image: "images/photo7.jpg", 
+            correctLocation: "Citadelle de Namur",
+            altLocations: ["Tour & Taxis", "Pairi Daiza"],
+            isAnswered: false,
+            userAnswer: null
+        },
+        {
+            image: "images/photo8.jpg", 
+            correctLocation: "Prison Island",
+            altLocations: ["Slovénie", "UGC"],
+            isAnswered: false,
+            userAnswer: null
+        },
+        {
+            image: "images/photo9.jpg", 
+            correctLocation: "Walibi",
+            altLocations: ["Maroc", "Lituanie"],
+            isAnswered: false,
+            userAnswer: null
+        },
+        {
+            image: "images/photo10.jpg", 
+            correctLocation: "Pairi Daiza",
+            altLocations: ["Rastoke (Croatie)", "Bruxelles"],
+            isAnswered: false,
+            userAnswer: null
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    const totalQuestions = quizData.length;
+    let score = 0;
+
+    const currentImageEl = document.getElementById('current-image');
+    const questionTextEl = document.getElementById('question-text');
+    const optionsContainerEl = document.getElementById('options-container');
+    const currentQuestionIndexEl = document.getElementById('current-question-index');
+    const totalQuestionsEl = document.getElementById('total-questions');
+    const nextButton = document.getElementById('next-button');
+    const feedbackEl = document.getElementById('feedback');
+    const quizScreen = document.getElementById('quiz-screen');
+    const resultScreen = document.getElementById('result-screen');
+    const finalScoreEl = document.getElementById('final-score');
+    const restartButton = document.getElementById('restart-button');
+
+    /**
+     * Mélange un tableau (Algorithme de Fisher-Yates).
+     * @param {Array} array - Le tableau à mélanger.
+     * @returns {Array} Le tableau mélangé.
+     */
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    /**
+     * Charge et affiche la question actuelle.
+     */
+    function loadQuestion() {
+        if (currentQuestionIndex >= totalQuestions) {
+            showResults();
+            return;
+        }
+
+        const question = quizData[currentQuestionIndex];
+        currentQuestionIndexEl.textContent = currentQuestionIndex + 1;
+        
+        // Utilisation du chemin d'accès relatif pour afficher l'image (Ex: 'images/photo1.jpg')
+        currentImageEl.src = question.image;
+
+        questionTextEl.textContent = `Devinez l'emplacement pour cette photo :`;
+        
+        // Préparation des options
+        const allOptions = shuffleArray([
+            question.correctLocation,
+            ...question.altLocations
+        ]);
+
+        optionsContainerEl.innerHTML = '';
+        nextButton.disabled = true;
+        feedbackEl.textContent = '';
+        feedbackEl.classList.remove('text-green-600', 'text-red-500');
+
+        allOptions.forEach(location => {
+            const button = document.createElement('button');
+            button.classList.add('quiz-button', 'btn-default', 'shadow-md');
+            button.textContent = location;
+            button.onclick = () => handleAnswer(location, question);
+            optionsContainerEl.appendChild(button);
+        });
+    }
+
+    /**
+     * Gère la sélection d'une réponse.
+     * @param {string} selectedLocation - Le lieu sélectionné par l'utilisateur.
+     * @param {object} question - L'objet de la question actuelle.
+     */
+    function handleAnswer(selectedLocation, question) {
+        if (question.isAnswered) return;
+
+        question.isAnswered = true;
+        question.userAnswer = selectedLocation;
+        nextButton.disabled = false;
+
+        const isCorrect = selectedLocation === question.correctLocation;
+        
+        if (isCorrect) {
+            score++;
+        }
+
+        // Mettre à jour le style des boutons et afficher le feedback
+        Array.from(optionsContainerEl.children).forEach(button => {
+            button.disabled = true; // Désactiver tous les boutons après la sélection
+            button.classList.remove('shadow-md');
+            button.classList.add('shadow-inner');
+
+            if (button.textContent === question.correctLocation) {
+                // Toujours mettre en évidence la bonne réponse en vert
+                button.classList.remove('btn-default');
+                button.classList.add('btn-correct');
+                if (isCorrect) {
+                    feedbackEl.textContent = 'Correct ! Bien joué.';
+                    feedbackEl.classList.add('text-green-400');
+                }
+            } else if (button.textContent === selectedLocation && !isCorrect) {
+                // Mettre en évidence la réponse incorrecte de l'utilisateur en rouge
+                button.classList.remove('btn-default');
+                button.classList.add('btn-wrong');
+                feedbackEl.textContent = 'Faux. L\'emplacement correct est en vert.';
+                feedbackEl.classList.add('text-red-400');
+            } else {
+                // Mettre les autres options en gris
+                button.classList.remove('btn-default');
+                button.classList.add('bg-gray-700', 'text-gray-400');
+            }
+        });
+    }
+
+    /**
+     * Passe à la question suivante.
+     */
+    nextButton.onclick = () => {
+        currentQuestionIndex++;
+        loadQuestion();
+    };
+
+    /**
+     * Affiche les résultats finaux du jeu.
+     */
+    function showResults() {
+        quizScreen.classList.add('hidden');
+        resultScreen.classList.remove('hidden');
+        finalScoreEl.textContent = score;
+    }
+
+    /**
+     * Réinitialise le jeu et charge la première question.
+     */
+    function restartGame() {
+        // Réinitialiser les variables de jeu
+        currentQuestionIndex = 0;
+        score = 0;
+        quizData.forEach(q => {
+            q.isAnswered = false;
+            q.userAnswer = null;
+        });
+        
+        // Mélanger l'ordre des questions pour un nouveau jeu
+        shuffleArray(quizData);
+
+        // Afficher l'écran de quiz
+        resultScreen.classList.add('hidden');
+        quizScreen.classList.remove('hidden');
+
+        // Charger la première question
+        loadQuestion();
+    }
+
+    // Gestionnaire de l'événement de redémarrage
+    restartButton.onclick = restartGame;
+
+    // Lancement initial du jeu
+    window.onload = () => {
+        totalQuestionsEl.textContent = totalQuestions;
+        restartGame(); 
+    };
+    
+</script>
+</body>
+</html>
