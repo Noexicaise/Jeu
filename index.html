@@ -21,9 +21,10 @@
             color: #f0f0f0; /* Texte clair */
             display: flex;
             justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
+            /* Retire min-height: 100vh; pour éviter de forcer l'étirement sur les petits écrans */
+            min-height: 100vh; 
+            align-items: flex-start; /* Alignement en haut pour les petits écrans */
+            padding: 10px; /* Moins de padding sur mobile */
         }
         .container {
             max-width: 900px;
@@ -31,12 +32,17 @@
             background-color: var(--color-blue-oxford); /* Conteneur bleu foncé */
             border-radius: 1.5rem;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
-            padding: 2rem;
-            border: 2px solid var(--color-yellow-mikado); /* Bordure jaune d'accent */
+            padding: 1rem; /* Moins de padding sur mobile */
+            border: 2px solid var(--color-yellow-mikado); 
+            margin-top: 10px;
+            margin-bottom: 10px;
         }
+        
+        /* ADJUSTEMENT CLÉ POUR LE MOBILE */
         .image-container {
             width: 100%;
-            height: 800px;
+            height: 60vh; /* Hauteur relative (60% de la fenêtre) par défaut pour mobile */
+            max-height: 400px; /* Limite maximale pour garder un ratio décent sur les très grands téléphones */
             overflow: hidden;
             border-radius: 1rem;
             box-shadow: 0 0 15px rgba(255, 195, 0, 0.4); 
@@ -45,11 +51,30 @@
             justify-content: center;
             align-items: center;
         }
+
+        /* MEDIA QUERY pour les écrans plus grands (tablette/desktop) */
+        @media (min-width: 768px) {
+            .container {
+                padding: 2rem;
+                margin-top: 20px;
+                margin-bottom: 20px;
+            }
+            .image-container {
+                height: 550px; /* Revenir à la hauteur souhaitée sur desktop */
+                max-height: 550px;
+            }
+            body {
+                align-items: center; /* Recentrer sur desktop */
+            }
+        }
+
         .image-container img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain; /* CHANGEMENT IMPORTANT : Utiliser 'contain' pour éviter le rognage */
         }
+        
+        /* Le reste des styles de boutons... */
         .quiz-button {
             padding: 0.8rem 1.5rem;
             border-radius: 0.75rem;
@@ -95,6 +120,17 @@
             background-color: #f87171; /* Red 400 */
             color: white;
         }
+        /* Ajustement des options pour éviter la grille 3 colonnes sur petit écran */
+        #options-container {
+             display: grid;
+             grid-template-columns: 1fr; /* 1 colonne sur mobile */
+             gap: 0.75rem;
+        }
+        @media (min-width: 768px) {
+            #options-container {
+                grid-template-columns: repeat(3, minmax(0, 1fr)); /* 3 colonnes sur desktop */
+            }
+        }
     </style>
 </head>
 <body>
@@ -113,7 +149,7 @@
 
         <p class="text-lg font-semibold text-gray-200 mb-4" id="question-text"></p>
 
-        <div id="options-container" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div id="options-container">
             <!-- Les options de réponse seront insérées ici -->
         </div>
 
@@ -148,7 +184,7 @@
 <script>
     // Liste des questions du quiz utilisant des chemins de fichiers relatifs.
     // ASSUREZ-VOUS de créer un dossier 'images' et de renommer vos photos : photo1.jpg, photo2.jpg, etc.
-    const quizData = [
+        const quizData = [
         {
             image: "images/photo1.jpg", 
             correctLocation: "Turquie",
@@ -165,15 +201,15 @@
         },
         {
             image: "images/photo3.jpg", 
-            correctLocation: "Plage de sable au coucher du soleil (Côte Atlantique, France)",
-            altLocations: ["Désert du Sahara, Maroc", "Plage de galets en Croatie"],
+            correctLocation: "Sardaigne",
+            altLocations: ["Vérone", "Crête"],
             isAnswered: false,
             userAnswer: null
         },
         {
             image: "images/photo4.jpg", 
-            correctLocation: "Bord de piscine avec margelle en brique rouge (Sud de la France)",
-            altLocations: ["Bain public à Budapest, Hongrie", "Piscine intérieure en Allemagne"],
+            correctLocation: "Croatie",
+            altLocations: ["Lituanie", "Pairi Daiza"],
             isAnswered: false,
             userAnswer: null
         },
